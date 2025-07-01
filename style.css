@@ -1,0 +1,320 @@
+.comment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  gap: 6px;
+}
+
+.username {
+  color: rgba(255, 255, 255, 1);
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.comment-text {
+  color: rgba(255, 255, 255, 0.75);
+  flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+}
+
+.comment-actions button {
+  margin: 2px 4px;
+  padding: 0px 6px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+.like-count {
+  color: rgba(255, 255, 255, 1);
+}
+
+.comment-bar {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.075);
+  color: white;
+}
+
+.comment-bar::placeholder {
+  color: white;
+  opacity: 0.75;
+}
+
+.comment-list {
+  max-height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-break: break-word;
+  padding-right: 4px;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
+}
+
+.comment-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.comment-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.comment-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.075);
+  border-radius: 8px;
+}
+
+.comment-list::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.075);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100vh;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+body {
+  position: relative;
+  background: white;
+}
+
+.bg-img,
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+.bg-img {
+  object-fit: cover;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.0);
+  z-index: 1;
+}
+
+.scroll-area {
+  position: relative;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 2;
+  padding: 0px 0 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
+}
+
+.kotak-rasio,
+.interaction-panel {
+  width: 90%;
+  max-width: 800px;
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  color: white;
+}
+
+.kotak-rasio {
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 4 / 3;
+  transition: transform 0.5s ease;
+  margin-top: 100px;
+}
+
+.kotak-rasio.rotate-left {
+  transform: rotateY(-360deg);
+}
+
+.kotak-rasio.rotate-right {
+  transform: rotateY(360deg);
+}
+
+.interaction-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.interaction-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.like-btn {
+  background: rgba(255, 255, 255, 0.075);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.taskbar-main-top {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 3;
+  color: white;
+}
+
+#weather {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#weather .icon {
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+}
+
+.taskbar-btn {
+  background: rgba(255, 255, 255, 0.075);
+  border: none;
+  color: white;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0px;
+}
+
+.taskbar-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.taskbar-btn img.icon {
+  width: 18px;
+  height: 18px;
+}
+
+.taskbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 3;
+  color: white;
+}
+
+.popup {
+  position: fixed;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  color: white;
+  padding: 16px;
+  z-index: 10;
+  display: none;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.popup a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.popup .stat-item {
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  margin-left: 4px;
+}
+
+.stats-panel {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  color: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  z-index: 3;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+}
+
+.popup-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

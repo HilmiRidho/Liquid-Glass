@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HilmiCode</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <img src="bg.jpg" alt="Background" class="bg-img" />
+  <div class="overlay"></div>
+
+  <div class="taskbar-main-top">
+    <button id="play-music" class="taskbar-btn">
+      <img id="music-icon" src="play_bt.svg" alt="Play" class="icon" />
+      <span id="music-label">Play Music</span>
+    </button>
+    <div id="clock">00:00</div>
+    <div id="weather">
+      <img src="cloud.svg" alt="Loading" class="icon" />
+      Loading...
+    </div>
+  </div>
+
+  <div class="scroll-area">
+    <div class="kotak-rasio"></div>
+
+    <div class="interaction-panel">
+      <div class="interaction-controls">
+        <button class="like-btn" id="emojiBtn">
+          <img src="emoji_bt.svg" alt="Emoji" style="width: 20px; height: 20px" />
+        </button>
+
+        <input
+          type="text"
+          class="comment-bar"
+          id="commentInput"
+          placeholder="Write a comment..."
+        />
+
+        <button id="submitComment" class="like-btn">
+          <img src="kirim_bt.svg" alt="Send" style="width: 20px; height: 20px" />
+        </button>
+      </div>
+
+      <div class="comment-list" id="commentList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <div class="popup-item">CPU: <span id="cpu">--%</span></div>
+    <div class="popup-item">RAM: <span id="ram">--%</span></div>
+    <div class="popup-item">Storage: <span id="storage">--%</span></div>
+  </div>
+
+  <div class="taskbar">
+    <button class="taskbar-btn">
+      <img src="paypal_bt.svg" alt="PayPal" class="icon" /> PayPal
+    </button>
+    <button id="ai-btn" class="taskbar-btn">
+      <img src="ai_bt.svg" alt="AI" class="icon" />
+    </button>
+    <button class="taskbar-btn">
+      <img src="voila_bt.svg" alt="Voila" class="icon" /> Voila!
+    </button>
+    <button class="taskbar-btn">
+      <img src="about_bt.svg" alt="About" class="icon" /> About
+    </button>
+  </div>
+
+  <div class="popup popup-about" id="popupAbout">
+    <p>[OST] Nintendo 3DS - Video Theme</p>
+    <div class="stat-item">
+      <img src="github_bt.svg" alt="GitHub" class="icon" />
+      <a href="https://github.com/HilmiRidho" target="_blank">github.com/HilmiRidho</a>
+    </div>
+  </div>
+
+  <div class="popup popup-voila" id="popupVoila">
+    <p>Social Media</p>
+    <div class="stat-item">
+      <img src="ig_bt.svg" alt="Instagram" class="icon" />
+      <a href="https://instagram.com/syscatl.d" target="_blank">Instagram</a>
+    </div>
+    <div class="stat-item">
+      <img src="fb_bt.svg" alt="Facebook" class="icon" />
+      <a href="https://facebook.com/hilmialiridho" target="_blank">Facebook</a>
+    </div>
+  </div>
+
+  <div class="popup popup-paypal" id="popupPaypal">
+    <div class="stat-item">
+      <img src="paypal_bt.svg" alt="PayPal" class="icon" />
+      <a href="https://paypal.me/hilmialiridho" target="_blank">Donation</a>
+    </div>
+  </div>
+
+  <audio id="musik" loop>
+    <source src="music.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
