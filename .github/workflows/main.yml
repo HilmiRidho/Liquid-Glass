@@ -3,10 +3,13 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main] # atau ganti dengan nama branch kamu
+    branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,11 +18,12 @@ jobs:
 
     - name: Build project (jika perlu)
       run: |
-        mkdir dist
-        echo "<h1>Hello from GitHub Actions!</h1>" > dist/index.html
+        echo "<h1>Hello World from build folder</h1>" > build/index.html
 
     - name: Deploy to gh-pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist
+        publish_dir: ./build
+        user_name: Hilmi Ridho
+        user_email: hilmialiridho2006@email.com
