@@ -75,6 +75,7 @@
          spellcheck="false" />
 
   <script src="libv86.js"></script>
+  <script src="network.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       const screenContainer = document.getElementById("screen_container");
@@ -100,9 +101,12 @@
         memory_size: 512 * 1024 * 1024,
         bios: { url: "seabios.bin" },
         vga_bios: { url: "vgabios.bin" },
-        bzimage: { url: "buildroot-bzimage68.bin" },
+        cdrom: { url: "linux.iso" },
         filesystem: {},
         screen_container: screenContainer,
+
+        network_relay_url: "wss://relay.widgetry.org/",
+
         autostart: true,
         disable_keyboard: true,
       });
