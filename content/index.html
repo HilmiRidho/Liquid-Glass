@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+  <title>Linux Console (Zoomed Out)</title>
+  <style>
+    html {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: black;
+      font-family: monospace;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #screen_container {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      transform: scale(0.60);
+      transform-origin: center top;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: crisp-edges;
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+
+    #virtual_input {
+      position: fixed;
+      top: 0;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      caret-color: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="screen_container">
+    <div style="white-space: pre; font: 14px monospace; line-height: 14px"></div>
+    <canvas></canvas>
+  </div>
+
+  <input type="text"
+         id="virtual_input"
+         autofocus
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false" />
+
+  <script src="libv86.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const screenContainer = document.getElementById("screen_container");
+      const inputElement = document.getElementById("virtual_input");
+
+      const keyToScancode = {
+        'Enter': [0x1C, 0x9C], 'Backspace': [0x0E, 0x8E], 'Tab': [0x0F, 0x8F], ' ': [0x39, 0xB9],
+        'a': [0x1E, 0x9E], 'b': [0x30, 0xB0], 'c': [0x2E, 0xAE], 'd': [0x20, 0xA0], 'e': [0x12, 0x92], 'f': [0x21, 0xA1], 'g': [0x22, 0xA2], 'h': [0x23, 0xA3], 'i': [0x17, 0x97], 'j': [0x24, 0xA4], 'k': [0x25, 0xA5], 'l': [0x26, 0xA6], 'm': [0x32, 0xB2], 'n': [0x31, 0xB1], 'o': [0x18, 0x98], 'p': [0x19, 0x99], 'q': [0x10, 0x90], 'r': [0x13, 0x93], 's': [0x1F, 0x9F], 't': [0x14, 0x94], 'u': [0x16, 0x96], 'v': [0x2F, 0xAF], 'w': [0x11, 0x91], 'x': [0x2D, 0xAD], 'y': [0x15, 0x95], 'z': [0x2C, 0xAC],
+        'A': [0x2A, 0x1E, 0x9E, 0xAA], 'B': [0x2A, 0x30, 0xB0, 0xAA], 'C': [0x2A, 0x2E, 0xAE, 0xAA], 'D': [0x2A, 0x20, 0xA0, 0xAA], 'E': [0x2A, 0x12, 0x92, 0xAA], 'F': [0x2A, 0x21, 0xA1, 0xAA], 'G': [0x2A, 0x22, 0xA2, 0xAA], 'H': [0x2A, 0x23, 0xA3, 0xAA], 'I': [0x2A, 0x17, 0x97, 0xAA], 'J': [0x2A, 0x24, 0xA4, 0xAA], 'K': [0x2A, 0x25, 0xA5, 0xAA], 'L': [0x2A, 0x26, 0xA6, 0xAA], 'M': [0x2A, 0x32, 0xB2, 0xAA], 'N': [0x2A, 0x31, 0xB1, 0xAA], 'O': [0x2A, 0x18, 0x98, 0xAA], 'P': [0x2A, 0x19, 0x99, 0xAA], 'Q': [0x2A, 0x10, 0x90, 0xAA], 'R': [0x2A, 0x13, 0x93, 0xAA], 'S': [0x2A, 0x1F, 0x9F, 0xAA], 'T': [0x2A, 0x14, 0x94, 0xAA], 'U': [0x2A, 0x16, 0x96, 0xAA], 'V': [0x2A, 0x2F, 0xAF, 0xAA], 'W': [0x2A, 0x11, 0x91, 0xAA], 'X': [0x2A, 0x2D, 0xAD, 0xAA], 'Y': [0x2A, 0x15, 0x95, 0xAA], 'Z': [0x2A, 0x2C, 0xAC, 0xAA],
+        '1': [0x02, 0x82], '2': [0x03, 0x83], '3': [0x04, 0x84], '4': [0x05, 0x85], '5': [0x06, 0x86], '6': [0x07, 0x87], '7': [0x08, 0x88], '8': [0x09, 0x89], '9': [0x0A, 0x8A], '0': [0x0B, 0x8B],
+        '`': [0x29, 0xA9], '-': [0x0C, 0x8C], '=': [0x0D, 0x8D], '[': [0x1A, 0x9A], ']': [0x1B, 0x9B], '\\': [0x2B, 0xAB],
+        ';': [0x27, 0xA7], "'": [0x28, 0xA8], ',': [0x33, 0xB3], '.': [0x34, 0xB4], '/': [0x35, 0xB5],
+        '~': [0x2A, 0x29, 0xA9, 0xAA], '!': [0x2A, 0x02, 0x82, 0xAA], '@': [0x2A, 0x03, 0x83, 0xAA], '#': [0x2A, 0x04, 0x84, 0xAA],
+        '$': [0x2A, 0x05, 0x85, 0xAA], '%': [0x2A, 0x06, 0x86, 0xAA], '^': [0x2A, 0x07, 0x87, 0xAA], '&': [0x2A, 0x08, 0x88, 0xAA],
+        '*': [0x2A, 0x09, 0x89, 0xAA], '(': [0x2A, 0x0A, 0x8A, 0xAA], ')': [0x2A, 0x0B, 0x8B, 0xAA], '_': [0x2A, 0x0C, 0x8C, 0xAA],
+        '+': [0x2A, 0x0D, 0x8D, 0xAA], '{': [0x2A, 0x1A, 0x9A, 0xAA], '}': [0x2A, 0x1B, 0x9B, 0xAA], '|': [0x2A, 0x2B, 0xAB, 0xAA],
+        ':': [0x2A, 0x27, 0xA7, 0xAA], '"': [0x2A, 0x28, 0xA8, 0xAA], '<': [0x2A, 0x33, 0xB3, 0xAA], '>': [0x2A, 0x34, 0xB4, 0xAA],
+        '?': [0x2A, 0x35, 0xB5, 0xAA]
+      };
+
+      const emulator = new V86({
+        wasm_path: "v86.wasm",
+        memory_size: 512 * 1024 * 1024,
+        bios: { url: "seabios.bin" },
+        vga_bios: { url: "vgabios.bin" },
+        bzimage: { url: "buildroot-bzimage68.bin" },
+        filesystem: {},
+        screen_container: screenContainer,
+        autostart: true,
+        disable_keyboard: true,
+      });
+
+      window.emulator = emulator;
+
+      function focusInput() {
+        if (document.activeElement !== inputElement) {
+          inputElement.focus();
+        }
+      }
+
+      function sendToSerial(str) {
+        emulator.serial0_send(str);
+      }
+
+      function sendToKeyboard(codes) {
+        emulator.keyboard_send_scancodes(codes);
+      }
+
+      focusInput();
+      document.body.addEventListener("click", focusInput);
+      document.body.addEventListener("touchstart", focusInput);
+
+      inputElement.addEventListener('focus', () => {
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+        }, 0);
+      });
+
+      inputElement.addEventListener('keydown', function(e) {
+        focusInput();
+        const specialKeys = ['Enter', 'Backspace', 'Tab'];
+        if (specialKeys.includes(e.key)) {
+            const codes = keyToScancode[e.key];
+            if (codes) {
+                e.preventDefault();
+                sendToKeyboard(codes);
+            }
+        }
+      });
+
+      inputElement.addEventListener('input', function() {
+        const value = inputElement.value;
+        if (value.length > 0) {
+          for (let i = 0; i < value.length; i++) {
+            const char = value.charAt(i);
+            const codes = keyToScancode[char];
+            if (codes) {
+              sendToKeyboard(codes);
+            } else {
+              sendToSerial(char);
+            }
+          }
+        }
+        inputElement.value = '';
+      });
+      
+    });
+  </script>
+</body>
+</html>
