@@ -119,27 +119,27 @@ async function submitComment() {
   }
 
   if (commentText.toLowerCase().startsWith("@ai")) {
-    const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
-    try {
-      const aiResponse = await fetch("/api/ai", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ prompt })
-});
+  const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
+  try {
+    const aiResponse = await fetch("/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
 
-      const aiData = await aiResponse.json();
-      const aiText = aiData.choices?.[0]?.message?.content?.trim();
-      if (aiText) {
-        await db.collection("comments").add({
-          username: "AI",
-          comment: aiText,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-    } catch (err) {
-      console.error("Gagal memanggil AI:", err);
+    const aiData = await aiResponse.json();
+    const aiText = aiData.reply?.trim();  // ✅ Ganti di sini!
+    if (aiText) {
+      await db.collection("comments").add({
+        username: "AI",
+        comment: aiText,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
     }
+  } catch (err) {
+    console.error("Gagal memanggil AI:", err);
   }
+}
 
   commentInput.value = "";
 }
