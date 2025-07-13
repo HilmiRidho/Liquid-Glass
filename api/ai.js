@@ -1,8 +1,10 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   const prompt = req.body.prompt || "Halo!";
   const OPENAI_KEY = process.env.OPENAI_API_KEY;
+
+  if (!OPENAI_KEY) {
+    return res.status(500).json({ reply: "API key tidak tersedia." });
+  }
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
