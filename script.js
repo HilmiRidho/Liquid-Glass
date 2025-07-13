@@ -101,11 +101,9 @@ async function submitComment() {
   const commentText = commentInput.value.trim();
   if (!commentText) return;
 
-  // Cek jika komentar mulai dengan @ai
   if (commentText.toLowerCase().startsWith("@ai")) {
     const prompt = commentText.replace(/^@ai\s*/i, '') || "Halo!";
 
-    // Kirim ke backend vercel
     try {
       const res = await fetch("/api/ai", {
         method: "POST",
@@ -115,7 +113,6 @@ async function submitComment() {
       const data = await res.json();
       const aiReply = data.reply || "Maaf, AI sedang tidak tersedia.";
 
-      // Simpan komentar user dan balasan AI ke Firebase
       await db.collection("comments").add({
         username,
         comment: commentText,
@@ -132,14 +129,13 @@ async function submitComment() {
       console.error("Gagal menjawab dengan AI:", err);
     }
   } else {
-    // Simpan komentar biasa
+    
     db.collection("comments").add({
       username,
       comment: commentText,
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Cek fitur blur tersembunyi
     const blurMatch = commentText.match(/^backdrop-filter:blur\((reset|\d+px)\)$/);
     if (blurMatch) {
       const val = blurMatch[1] === 'reset' ? 'reset' : blurMatch[1].replace('px', '');
@@ -306,7 +302,7 @@ const gameBtn = document.getElementById("ai-btn");
 let gameActive = false;
 
 gameBtn.addEventListener("click", () => {
-  kotakRasio.innerHTML = gameActive ? '' : '<iframe src="iframe.html" style="width:100%;height:100%;border:none;border-radius:16px;"></iframe>';
+  kotakRasio.innerHTML = gameActive ? '' : '<iframe src="" style="width:100%;height:100%;border:none;border-radius:16px;"></iframe>';
   gameActive = !gameActive;
 });
 
