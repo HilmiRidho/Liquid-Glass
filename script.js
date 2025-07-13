@@ -1,3 +1,5 @@
+// --- START OF FILE script.js ---
+
 firebase.initializeApp({
   apiKey: "AIzaSyDf64ttRcxVtyv_xhb06bHopD1kUiFJI9Y",
   authDomain: "hilmicode-comment.firebaseapp.com",
@@ -8,6 +10,9 @@ firebase.initializeApp({
   measurementId: "G-Y6GL3EBMKY"
 });
 const db = firebase.firestore();
+
+// CATATAN: Konfigurasi AI (API Key dan URL) telah dipindahkan ke serverless function
+// untuk alasan keamanan. File ini tidak lagi berisi API key.
 
 function formatShortNumber(num) {
   if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
@@ -59,7 +64,7 @@ function updateWeather() {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}¤t_weather=true`);
         const data = await res.json();
         const temp = data.current_weather.temperature;
         document.getElementById("weather").innerHTML = `
@@ -96,12 +101,55 @@ commentInput.addEventListener("keypress", function (e) {
   }
 });
 
+
+// --- START: MODIFIED AI Response Function ---
+// Fungsi ini sekarang memanggil serverless function yang aman di /api/gemini
+async function getAiResponse(prompt) {
+  const finalPrompt = prompt || "Hello! Introduce yourself briefly as an AI assistant integrated into this comment section.";
+
+  try {
+    // Panggil endpoint API kita sendiri yang berjalan di Vercel
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt: finalPrompt })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Our server API responded with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiText = data.reply; // Mengambil 'reply' dari respons JSON serverless function
+
+    // Tambahkan balasan AI ke Firestore
+    db.collection("comments").add({
+      username: "AI",
+      comment: aiText,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+  } catch (error) {
+    console.error("Error calling our /api/gemini route:", error);
+    db.collection("comments").add({
+        username: "AI",
+        comment: "Sorry, I'm having a little trouble right now. Please try again later.",
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+}
+// --- END: MODIFIED AI Response Function ---
+
+
+// --- START: MODIFIED Submit Comment Function ---
 async function submitComment() {
   const username = localStorage.getItem("username") || "Anonymous";
   const commentText = commentInput.value.trim();
   if (!commentText) return;
 
-  await db.collection("comments").add({
+  db.collection("comments").add({
     username,
     comment: commentText,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -113,38 +161,17 @@ async function submitComment() {
     updateBackdropBlur(val);
   }
 
+  // Panggil AI jika komentar diawali dengan @ai.
+  // Pemeriksaan API Key sudah tidak diperlukan di sini.
   if (commentText.toLowerCase().startsWith("@ai")) {
-    const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
-    try {
-      const aiResponse = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
-      });
-
-      let aiData;
-      try {
-        aiData = await aiResponse.json();
-      } catch (err) {
-        console.error("Respon AI bukan JSON:", err);
-        return;
-      }
-
-      const aiText = aiData.reply?.trim();
-      if (aiText) {
-        await db.collection("comments").add({
-          username: "AI",
-          comment: aiText,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-    } catch (err) {
-      console.error("Gagal memanggil AI:", err);
-    }
+    const userPrompt = commentText.substring(3).trim();
+    getAiResponse(userPrompt);
   }
 
   commentInput.value = "";
 }
+// --- END: MODIFIED Submit Comment Function ---
+
 
 db.collection("comments").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
   commentList.innerHTML = "";
@@ -160,6 +187,9 @@ db.collection("comments").orderBy("timestamp", "desc").onSnapshot((snapshot) => 
 
     const usernameEl = document.createElement("strong");
     usernameEl.className = "username";
+    if (data.username === "AI" || data.username === "System") {
+      usernameEl.style.color = "#82aaff";
+    }
     usernameEl.textContent = data.username + ": ";
 
     const commentEl = document.createElement("span");
@@ -213,6 +243,14 @@ db.collection("comments").orderBy("timestamp", "desc").onSnapshot((snapshot) => 
     deleteBtn.appendChild(deleteImg);
 
     const isOwnerOrAdmin = currentUsername === data.username.toLowerCase() || currentUsername === "hilmibiji" || currentUsername === "admin";
+    
+    if (data.username === "AI" || data.username === "System") {
+        if (currentUsername !== "hilmibiji" && currentUsername !== "admin") {
+            deleteBtn.style.opacity = "0.3";
+            deleteBtn.style.pointerEvents = "none";
+        }
+    }
+
     if (isOwnerOrAdmin) {
       deleteBtn.addEventListener("click", () => {
         db.collection("comments").doc(doc.id).delete();
@@ -278,6 +316,7 @@ kotakRasio.addEventListener('touchstart', (e) => {
   startX = e.touches[0].clientX;
   isSwiping = true;
 });
+
 kotakRasio.addEventListener('touchmove', (e) => {
   if (!isSwiping) return;
   const diffX = e.touches[0].clientX - startX;
@@ -292,12 +331,14 @@ kotakRasio.addEventListener('touchmove', (e) => {
     isSwiping = false;
   }
 });
+
 kotakRasio.addEventListener('touchend', () => {
   isSwiping = false;
 });
 
 const gameBtn = document.getElementById("ai-btn");
 let gameActive = false;
+
 gameBtn.addEventListener("click", () => {
   kotakRasio.innerHTML = gameActive ? '' : '<iframe src="iframe.html" style="width:100%;height:100%;border:none;border-radius:16px;"></iframe>';
   gameActive = !gameActive;
@@ -321,3 +362,5 @@ let weatherInterval = setInterval(() => {
     updateWeather();
   }
 }, 15000);
+
+// --- END OF FILE script.js ---
