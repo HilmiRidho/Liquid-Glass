@@ -13,7 +13,7 @@ const db = firebase.firestore();
 // WARNING: Menyimpan API key di kode sisi klien (browser) sangat tidak aman dan berisiko.
 // Ini hanya untuk tujuan demonstrasi. Dalam aplikasi produksi, gunakan backend yang aman (misalnya, Cloud Function).
 // Dapatkan API Key Anda dari Google AI Studio: https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = "AIzaSyCRbB2_nCYtqIerQK0gDSnoALVYlemNnsM";
+const GEMINI_API_KEY = "AIzaSyAPPuqS3H9CXvzhGdHzwEeusw3xVoSgLpk";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
 async function callGenerativeAI(prompt) {
