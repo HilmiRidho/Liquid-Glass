@@ -1,4 +1,3 @@
-// Inisialisasi Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyDf64ttRcxVtyv_xhb06bHopD1kUiFJI9Y",
   authDomain: "hilmicode-comment.firebaseapp.com",
@@ -17,7 +16,6 @@ function formatShortNumber(num) {
   return num.toString();
 }
 
-// Musik
 const btn = document.getElementById("play-music");
 const audio = document.getElementById("musik");
 const icon = document.getElementById("music-icon");
@@ -35,7 +33,6 @@ btn.addEventListener("click", () => {
   }
 });
 
-// Jam
 function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2, "0");
@@ -45,7 +42,6 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Statistik
 function updateStats() {
   const cpu = Math.floor(Math.random() * 50) + 10;
   const ram = Math.floor(Math.random() * 80) + 10;
@@ -57,7 +53,6 @@ function updateStats() {
 setInterval(updateStats, 3000);
 updateStats();
 
-// Cuaca
 function updateWeather() {
   if ("geolocation" in navigator) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -119,27 +114,34 @@ async function submitComment() {
   }
 
   if (commentText.toLowerCase().startsWith("@ai")) {
-  const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
-  try {
-    const aiResponse = await fetch("/api/ai", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-
-    const aiData = await aiResponse.json();
-    const aiText = aiData.reply?.trim();  // ✅ Ganti di sini!
-    if (aiText) {
-      await db.collection("comments").add({
-        username: "AI",
-        comment: aiText,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
+    try {
+      const aiResponse = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
       });
+
+      let aiData;
+      try {
+        aiData = await aiResponse.json();
+      } catch (err) {
+        console.error("Respon AI bukan JSON:", err);
+        return;
+      }
+
+      const aiText = aiData.reply?.trim();
+      if (aiText) {
+        await db.collection("comments").add({
+          username: "AI",
+          comment: aiText,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (err) {
+      console.error("Gagal memanggil AI:", err);
     }
-  } catch (err) {
-    console.error("Gagal memanggil AI:", err);
   }
-}
 
   commentInput.value = "";
 }
@@ -230,7 +232,6 @@ db.collection("comments").orderBy("timestamp", "desc").onSnapshot((snapshot) => 
   });
 });
 
-// Emoji
 const emojiBtnBtn = document.getElementById("emojiBtn");
 const emojiBtnImg = emojiBtnBtn.querySelector("img");
 emojiBtnImg.src = "emoji_bt.svg";
@@ -244,7 +245,6 @@ emojiBtnBtn.addEventListener("click", (e) => {
   commentInput.blur();
 });
 
-// Popup Taskbar
 const popupAbout = document.getElementById("popupAbout");
 const popupVoila = document.getElementById("popupVoila");
 const popupPaypal = document.getElementById("popupPaypal");
@@ -270,7 +270,6 @@ document.addEventListener("click", function (e) {
   }
 });
 
-// Geser
 const kotakRasio = document.querySelector('.kotak-rasio');
 let startX = 0;
 let isSwiping = false;
@@ -297,7 +296,6 @@ kotakRasio.addEventListener('touchend', () => {
   isSwiping = false;
 });
 
-// Game / Iframe
 const gameBtn = document.getElementById("ai-btn");
 let gameActive = false;
 gameBtn.addEventListener("click", () => {
@@ -305,7 +303,6 @@ gameBtn.addEventListener("click", () => {
   gameActive = !gameActive;
 });
 
-// Backdrop blur
 function updateBackdropBlur(value) {
   const defaultBlur = '12px';
   const blurValue = value === 'reset' ? defaultBlur : `${value}px`;
@@ -314,10 +311,10 @@ function updateBackdropBlur(value) {
   });
 }
 
-// Re-attempt cuaca saat online
 window.addEventListener("online", () => {
   updateWeather();
 });
+
 let weatherInterval = setInterval(() => {
   const weatherEl = document.getElementById("weather");
   if (weatherEl && (!weatherEl.textContent || weatherEl.textContent.includes("Failed"))) {
