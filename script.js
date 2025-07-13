@@ -9,6 +9,63 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
+// --- START: AI Integration ---
+// WARNING: Menyimpan API key di kode sisi klien (browser) sangat tidak aman dan berisiko.
+// Ini hanya untuk tujuan demonstrasi. Dalam aplikasi produksi, gunakan backend yang aman (misalnya, Cloud Function).
+// Dapatkan API Key Anda dari Google AI Studio: https://aistudio.google.com/app/apikey
+const GEMINI_API_KEY = "AIzaSyCRbB2_nCYtqIerQK0gDSnoALVYlemNnsM";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+
+async function callGenerativeAI(prompt) {
+  // Jangan proses jika API Key belum diganti
+  if (GEMINI_API_KEY === "GANTI_DENGAN_API_KEY_GOOGLE_AI_STUDIO_ANDA") {
+    console.error("AI Error: API Key belum diatur.");
+    db.collection("comments").add({
+      username: "AI System",
+      comment: "Fitur AI belum dikonfigurasi. Harap masukkan API Key pada file script.js.",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return;
+  }
+  
+  try {
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error.message || `API call failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Pastikan ada kandidat dan konten sebelum mengaksesnya
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (aiResponse) {
+      db.collection("comments").add({
+        username: "AI",
+        comment: aiResponse.trim(),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+       throw new Error("AI tidak memberikan respons yang valid.");
+    }
+  } catch (error) {
+    console.error("Error calling AI:", error);
+    db.collection("comments").add({
+      username: "AI",
+      comment: "Maaf, saya sedang mengalami kendala dan tidak bisa merespon saat ini.",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+}
+// --- END: AI Integration ---
+
 function formatShortNumber(num) {
   if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
   if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
@@ -59,7 +116,7 @@ function updateWeather() {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}¤t_weather=true`);
         const data = await res.json();
         const temp = data.current_weather.temperature;
         document.getElementById("weather").innerHTML = `
@@ -101,12 +158,21 @@ function submitComment() {
   const commentText = commentInput.value.trim();
   if (!commentText) return;
 
+  // Post komentar pengguna ke Firestore
   db.collection("comments").add({
     username,
     comment: commentText,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
 
+  // [MODIFIED] Cek jika komentar mengandung "@ai"
+  if (commentText.toLowerCase().includes("@ai")) {
+    // Hapus "@ai" dari teks untuk dijadikan prompt
+    const aiPrompt = commentText.replace(/@ai/gi, "").trim();
+    if (aiPrompt) { // Pastikan ada pertanyaan untuk AI
+      callGenerativeAI(aiPrompt);
+    }
+  }
   
   // Cek dan jalankan fitur tersembunyi dengan px wajib
   const blurMatch = commentText.match(/^backdrop-filter:blur\((reset|\d+px)\)$/);
