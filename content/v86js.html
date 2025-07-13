@@ -105,7 +105,10 @@
         filesystem: {},
         screen_container: screenContainer,
 
-        network_relay_url: "wss://relay.widgetry.org/",
+        net_device: {
+            type: "virtio",
+            relay_url: "wss://relay.widgetry.org/",
+        },
 
         autostart: true,
         disable_keyboard: true,
