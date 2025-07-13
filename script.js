@@ -1,3 +1,4 @@
+// Inisialisasi Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyDf64ttRcxVtyv_xhb06bHopD1kUiFJI9Y",
   authDomain: "hilmicode-comment.firebaseapp.com",
@@ -9,63 +10,6 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// --- START: AI Integration ---
-// WARNING: Menyimpan API key di kode sisi klien (browser) sangat tidak aman dan berisiko.
-// Ini hanya untuk tujuan demonstrasi. Dalam aplikasi produksi, gunakan backend yang aman (misalnya, Cloud Function).
-// Dapatkan API Key Anda dari Google AI Studio: https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = "AIzaSyAPPuqS3H9CXvzhGdHzwEeusw3xVoSgLpk";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-
-async function callGenerativeAI(prompt) {
-  // Jangan proses jika API Key belum diganti
-  if (GEMINI_API_KEY === "GANTI_DENGAN_API_KEY_GOOGLE_AI_STUDIO_ANDA") {
-    console.error("AI Error: API Key belum diatur.");
-    db.collection("comments").add({
-      username: "AI System",
-      comment: "Fitur AI belum dikonfigurasi. Harap masukkan API Key pada file script.js.",
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    return;
-  }
-  
-  try {
-    const response = await fetch(GEMINI_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error.message || `API call failed with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    // Pastikan ada kandidat dan konten sebelum mengaksesnya
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (aiResponse) {
-      db.collection("comments").add({
-        username: "AI",
-        comment: aiResponse.trim(),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } else {
-       throw new Error("AI tidak memberikan respons yang valid.");
-    }
-  } catch (error) {
-    console.error("Error calling AI:", error);
-    db.collection("comments").add({
-      username: "AI",
-      comment: "Maaf, saya sedang mengalami kendala dan tidak bisa merespon saat ini.",
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }
-}
-// --- END: AI Integration ---
-
 function formatShortNumber(num) {
   if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
   if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
@@ -73,6 +17,7 @@ function formatShortNumber(num) {
   return num.toString();
 }
 
+// Musik
 const btn = document.getElementById("play-music");
 const audio = document.getElementById("musik");
 const icon = document.getElementById("music-icon");
@@ -90,6 +35,7 @@ btn.addEventListener("click", () => {
   }
 });
 
+// Jam
 function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2, "0");
@@ -99,6 +45,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// Statistik
 function updateStats() {
   const cpu = Math.floor(Math.random() * 50) + 10;
   const ram = Math.floor(Math.random() * 80) + 10;
@@ -110,6 +57,7 @@ function updateStats() {
 setInterval(updateStats, 3000);
 updateStats();
 
+// Cuaca
 function updateWeather() {
   if ("geolocation" in navigator) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -153,32 +101,50 @@ commentInput.addEventListener("keypress", function (e) {
   }
 });
 
-function submitComment() {
+async function submitComment() {
   const username = localStorage.getItem("username") || "Anonymous";
   const commentText = commentInput.value.trim();
   if (!commentText) return;
 
-  // Post komentar pengguna ke Firestore
-  db.collection("comments").add({
+  await db.collection("comments").add({
     username,
     comment: commentText,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
 
-  // [MODIFIED] Cek jika komentar mengandung "@ai"
-  if (commentText.toLowerCase().includes("@ai")) {
-    // Hapus "@ai" dari teks untuk dijadikan prompt
-    const aiPrompt = commentText.replace(/@ai/gi, "").trim();
-    if (aiPrompt) { // Pastikan ada pertanyaan untuk AI
-      callGenerativeAI(aiPrompt);
-    }
-  }
-  
-  // Cek dan jalankan fitur tersembunyi dengan px wajib
   const blurMatch = commentText.match(/^backdrop-filter:blur\((reset|\d+px)\)$/);
   if (blurMatch) {
     const val = blurMatch[1] === 'reset' ? 'reset' : blurMatch[1].replace('px', '');
     updateBackdropBlur(val);
+  }
+
+  if (commentText.toLowerCase().startsWith("@ai")) {
+    const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
+    try {
+      const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer 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",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+
+      const aiData = await aiResponse.json();
+      const aiText = aiData.choices?.[0]?.message?.content?.trim();
+      if (aiText) {
+        await db.collection("comments").add({
+          username: "AI",
+          comment: aiText,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (err) {
+      console.error("Gagal memanggil AI:", err);
+    }
   }
 
   commentInput.value = "";
@@ -270,6 +236,7 @@ db.collection("comments").orderBy("timestamp", "desc").onSnapshot((snapshot) => 
   });
 });
 
+// Emoji
 const emojiBtnBtn = document.getElementById("emojiBtn");
 const emojiBtnImg = emojiBtnBtn.querySelector("img");
 emojiBtnImg.src = "emoji_bt.svg";
@@ -283,6 +250,7 @@ emojiBtnBtn.addEventListener("click", (e) => {
   commentInput.blur();
 });
 
+// Popup Taskbar
 const popupAbout = document.getElementById("popupAbout");
 const popupVoila = document.getElementById("popupVoila");
 const popupPaypal = document.getElementById("popupPaypal");
@@ -308,6 +276,7 @@ document.addEventListener("click", function (e) {
   }
 });
 
+// Geser
 const kotakRasio = document.querySelector('.kotak-rasio');
 let startX = 0;
 let isSwiping = false;
@@ -316,7 +285,6 @@ kotakRasio.addEventListener('touchstart', (e) => {
   startX = e.touches[0].clientX;
   isSwiping = true;
 });
-
 kotakRasio.addEventListener('touchmove', (e) => {
   if (!isSwiping) return;
   const diffX = e.touches[0].clientX - startX;
@@ -331,19 +299,19 @@ kotakRasio.addEventListener('touchmove', (e) => {
     isSwiping = false;
   }
 });
-
 kotakRasio.addEventListener('touchend', () => {
   isSwiping = false;
 });
 
+// Game / Iframe
 const gameBtn = document.getElementById("ai-btn");
 let gameActive = false;
-
 gameBtn.addEventListener("click", () => {
   kotakRasio.innerHTML = gameActive ? '' : '<iframe src="iframe.html" style="width:100%;height:100%;border:none;border-radius:16px;"></iframe>';
   gameActive = !gameActive;
 });
 
+// Backdrop blur
 function updateBackdropBlur(value) {
   const defaultBlur = '12px';
   const blurValue = value === 'reset' ? defaultBlur : `${value}px`;
@@ -352,10 +320,10 @@ function updateBackdropBlur(value) {
   });
 }
 
+// Re-attempt cuaca saat online
 window.addEventListener("online", () => {
   updateWeather();
 });
-
 let weatherInterval = setInterval(() => {
   const weatherEl = document.getElementById("weather");
   if (weatherEl && (!weatherEl.textContent || weatherEl.textContent.includes("Failed"))) {
