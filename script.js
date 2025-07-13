@@ -121,17 +121,11 @@ async function submitComment() {
   if (commentText.toLowerCase().startsWith("@ai")) {
     const prompt = commentText.replace(/^@ai/i, "").trim() || "Hai!";
     try {
-      const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer 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",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: prompt }]
-        })
-      });
+      const aiResponse = await fetch("/api/ai", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ prompt })
+});
 
       const aiData = await aiResponse.json();
       const aiText = aiData.choices?.[0]?.message?.content?.trim();
