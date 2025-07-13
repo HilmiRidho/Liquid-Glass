@@ -274,7 +274,7 @@ const gameBtn = document.getElementById("ai-btn");
 let gameActive = false;
 
 gameBtn.addEventListener("click", () => {
-  kotakRasio.innerHTML = gameActive ? '' : '<iframe src="content/v86js.html" style="width:100%;height:100%;border:none;border-radius:16px;"></iframe>';
+  kotakRasio.innerHTML = gameActive ? '' : '<iframe src="iframe.html" style="width:100%;height:100%;border:none;border-radius:16px;"></iframe>';
   gameActive = !gameActive;
 });
 
