@@ -116,7 +116,7 @@ function updateWeather() {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}¤t_weather=true`);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         const data = await res.json();
         const temp = data.current_weather.temperature;
         document.getElementById("weather").innerHTML = `
